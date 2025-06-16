@@ -1,7 +1,7 @@
-package com.example.procurement.auth.service;
+package com.alfis.procurement.auth.service;
 
-import com.example.procurement.auth.dto.AuthRequest;
-import com.example.procurement.auth.dto.AuthResponse;
+import com.alfis.procurement.auth.dto.AuthRequest;
+import com.alfis.procurement.auth.dto.AuthResponse;
 
 public interface AuthService {
     AuthResponse login(AuthRequest request);
