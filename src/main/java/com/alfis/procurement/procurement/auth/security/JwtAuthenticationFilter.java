@@ -1,7 +1,7 @@
 package com.alfis.procurement.auth.security;
 
 import com.alfis.procurement.user.entity.User;
-import com.alfis.procurement.user.service.UserService;
+import com.alfis.procurement.user.repository.UserRepository;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,33 +15,37 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Optional;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        final String token = authHeader.substring(7);
-        try {
-            var userId = tokenProvider.getUserIdFromToken(token);
-            var user = userService.findById(userId);
+        String token = authHeader.substring(7);
 
-            if (user.isPresent()) {
-                User u = user.get();
-                var authentication = new UsernamePasswordAuthenticationToken(
-                        u, null, Collections.emptyList()
+        try {
+            UUID userId = tokenProvider.getUserIdFromToken(token);
+            Optional<User> userOpt = userRepository.findById(userId);
+
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        user, null, Collections.emptyList()
                 );
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
